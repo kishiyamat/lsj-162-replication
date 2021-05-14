@@ -23,4 +23,4 @@ RUN pip install -r requirements.lock
 
 # Experiment
 # COPY hyparam /opt/app
-# RUN git clone https://github.com/kishiyamat/lsj-162-replication.git
+RUN git clone -b feature/add-dockerfile https://github.com/kishiyamat/lsj-162-replication.git
