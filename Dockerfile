@@ -24,5 +24,5 @@ RUN pip install -r requirements.lock
 
 RUN R -e "install.packages('tidyverse', repos = 'http://cran.us.r-project.org')"
 # Experiment
-RUN git clone -b feature/add-dockerfile https://github.com/kishiyamat/lsj-162-replication.git
+RUN git clone -b main https://github.com/kishiyamat/lsj-162-replication.git
 RUN apt-get install -y pandoc
