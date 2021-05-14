@@ -16,7 +16,3 @@ $ docker ps
 $ docker cp 93ad197fcfae:/opt/app/lsj-162-replication/artifact/ artifact/
 $ mv artifact/* .  # 結果をコピーして終了
 ```
-
-# 参考
-
-- [仕事でPythonコンテナをデプロイする人向けのDockerfile (1): オールマイティ編](https://future-architect.github.io/articles/20200513/)
