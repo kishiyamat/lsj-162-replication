@@ -1,0 +1,10 @@
+n_trial: 10
+n_iter: 10
+u_duration_a: 0
+w_duration_a: 3
+u_duration_b: 9
+w_duration_b: 3
+switch: "production"
+source: "kawuta"
+target: "kaQta"
+
