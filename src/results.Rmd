@@ -1,0 +1,211 @@
+---
+title: "results"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(magrittr)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+```
+
+* 規則・制約なしに再現できるか. durationで上がるはず
+* u_trinsic と duration の交互作用はあるか -> 心理言語学の予測
+  * 知識としてあるか。交互作用が肝心。
+* どのようなタブローが作成出来るか -> 音韻論の candidates
+* 計算モデル的: HMMとの比較はベストなパラメータでの比較になる
+
+# Feature
+
+```{r}
+df <- read_csv("../data/sampled_means.csv")
+
+scatterPlot <-
+  df %>% mutate(c=paste0("/",state,"/")) %>% 
+   ggplot(aes(x, y, color=c)) + 
+  theme_bw() +
+  stat_density_2d(geom = "polygon", aes(alpha = ..level.., fill = c), bins = 5)
+
+ggsave(file="../artifact/mean_scatter.png", scatterPlot, width = 11, height = 9., units = "cm")
+ggsave(file="../artifact/mean_scatter.pdf", scatterPlot, width = 11, height = 9, units = "cm")
+```
+
+# Experiment 1
+
+- 「短い」となっているなら短いものも /u/ と推論できるので削除は起きない
+- 短くなるように削除されて /u/ ではなくなるからこそ削除が起きる
+- チューニングには koota も使っているが、それによって ka?ta が増えているわけではない。
+  仮にそうなら koota も増えるはず。
+
+```{r}
+intrinsic <- read_csv("../data/intrinsic_1.csv")
+intrinsic_tidy =  intrinsic %>%
+ pivot_longer(
+   cols = starts_with("n_"),
+   names_to = "recognized",
+   names_prefix = "n_",
+   values_to = "count",
+   values_drop_na = TRUE
+ ) %>% 
+  mutate(u_duration=as.factor(u_duration)) %>%  
+  # mutate(recognized=case_when(.$recognized=="kaʔta"~"katta", TRUE~.$recognized)) %>%  
+  filter(recognized!="koota")
+intrinsic_tidy
+```
+
+kaQutaへの選好性を示せばいい。
+
+```{r}
+exp1_results = intrinsic_tidy %>%
+  filter(recognized %in% c("kawuta", "kaQta")) %>% 
+  filter(u_duration %in% c(0, 1)) %>% 
+  pivot_wider(names_from = recognized, values_from = count) %>% 
+  mutate(y = kaQta-kawuta)
+  
+head(exp1_results)
+```
+
+## Graph
+
+```{r}
+intrinsic_plot_1 =  exp1_results %>%
+   ggplot(aes(x=u_duration, y=y, color=intrinsic)) +
+   facet_wrap(.~intrinsic) +
+   geom_boxplot() +
+   theme_bw() +
+   scale_shape_manual(values = c(16, 21)) +
+   scale_fill_manual(values = c("black", "white")) +
+   labs(colour="Recognized", x="Duration of /u/") +
+   theme(axis.title.y=element_blank(),
+         legend.position="top",
+         axis.text=element_text(size=10),
+         axis.title=element_text(size=12,face="bold"),
+         strip.text.x = element_text(size = 10)) +
+  guides(colour = guide_legend(title = NULL))
+
+ggsave(file="../artifact/intrinsic_plot_1.png", intrinsic_plot_1, width = 7, height = 7, units = "cm")
+ggsave(file="../artifact/intrinsic_plot_1.pdf", intrinsic_plot_1, width = 7, height = 7, units = "cm")
+
+intrinsic_plot_1
+```
+
+## Stats Analysis
+
+
+```{r}
+model = lm(data=exp1_results, y~u_duration*intrinsic)
+summary(model)
+```
+
+## Tableau
+
+```{r, echo=FALSE}
+candidate <- read_csv("../data/candidate_1.csv")
+
+n_candidate = nrow(candidate)
+n_count = sum(candidate$count)
+# facet_wrap(~u_duration) + ができたらなお良い？
+# でもいらないかなぁ
+
+candidate_plot_1 = candidate %>% filter(count>90) %>% # filter(candidate != "kawuta" ) %>% 
+    mutate(count=.$count/n_count) %>% 
+    ggplot(aes(x=count, y=reorder(candidate, count))) +
+    geom_bar(stat="identity", colour="black", size=0.2, position = position_stack(reverse = TRUE)) +
+    theme_bw() +
+    labs(y="Candidates", x = "Probability") +
+    theme(axis.title.y=element_text(size=10,face="bold"),
+          axis.title=element_text(size=10,face="bold"),
+          axis.text=element_text(size=10))
+    
+ggsave(file="../artifact/candidate_plot_1.png", candidate_plot_1, width = 8, height = 8, units = "cm")
+candidate_plot_1
+```
+
+# Experiment 2
+
+## Intrinsic
+
+```{r}
+intrinsic <- read_csv("../data/intrinsic_2.csv")
+head(intrinsic)
+intrinsic_tidy_w = 
+intrinsic %>%
+ pivot_longer(
+   cols = starts_with("n_"),
+   names_to = "recognized",
+   names_prefix = "n_",
+   values_to = "count",
+   values_drop_na = TRUE
+ ) %>% 
+  mutate(w_duration=as.factor(w_duration))
+
+intrinsic_tidy_w
+```
+
+
+```{r}
+exp2_results = intrinsic_tidy_w %>%
+  filter(recognized %in% c("kawuta", "kauta")) %>% 
+  filter(w_duration %in% c(0, 1)) %>% 
+  pivot_wider(names_from = recognized, values_from = count) %>% 
+  mutate(y = kauta-kawuta)
+  
+head(exp2_results)
+```
+  
+## Graph
+
+```{r}
+intrinsic_plot_2 = exp2_results %>%
+   ggplot(aes(x=w_duration, y=y, color=intrinsic)) +
+   facet_wrap(.~intrinsic) +
+   geom_boxplot() +
+   theme_bw() +
+   scale_shape_manual(values = c(16, 21)) +
+   scale_fill_manual(values = c("black", "white")) +
+   labs(colour="Recognized", x="Duration of /w/") +
+   theme(axis.title.y=element_blank(),
+         legend.position="top",
+         axis.text=element_text(size=10),
+         axis.title=element_text(size=12,face="bold"),
+         strip.text.x = element_text(size = 10)) +
+    guides(colour = guide_legend(title = NULL))
+
+intrinsic_plot_2
+ggsave(file="../artifact/intrinsic_plot_2.png", intrinsic_plot_2, width = 7, height = 7, units = "cm")
+ggsave(file="../artifact/intrinsic_plot_2.pdf", intrinsic_plot_2, width = 7, height = 7, units = "cm")
+```
+
+## Stats Analysis
+
+```{r}
+model_2 = lm(data=exp2_results, y~w_duration*intrinsic)
+summary(model_2)
+```
+
+## Tableau
+
+```{r, echo=FALSE}
+candidate <- read_csv("../data/candidate_2.csv")
+
+n_candidate = nrow(candidate)
+n_count = sum(candidate$count)
+
+candidate_plot = candidate %>% filter(count>90) %>%
+    mutate(count=.$count/n_count) %>% 
+    ggplot(aes(x=count, y=reorder(candidate, count))) +
+    geom_bar(stat="identity", colour="black", size=0.2, position = position_stack(reverse = TRUE)) +
+    theme_bw() +
+    labs(y="Candidates", x = "Probability") +
+    theme(axis.title.y=element_text(size=10,face="bold"),
+          axis.title=element_text(size=10,face="bold"),
+          axis.text=element_text(size=10))
+    
+ggsave(file="../artifact/candidate_plot_2.png", candidate_plot, width = 8, height = 8, units = "cm")
+candidate_plot
+```
+
+
