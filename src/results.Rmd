@@ -21,7 +21,7 @@ library(dplyr)
 # Feature
 
 ```{r}
-df <- read_csv("../data/sampled_means.csv")
+df <- read_csv("../artifact/sampled_means.csv")
 
 scatterPlot <-
   df %>% mutate(c=paste0("/",state,"/")) %>% 
@@ -41,7 +41,7 @@ ggsave(file="../artifact/mean_scatter.pdf", scatterPlot, width = 11, height = 9,
   仮にそうなら koota も増えるはず。
 
 ```{r}
-intrinsic <- read_csv("../data/intrinsic_1.csv")
+intrinsic <- read_csv("../artifact/intrinsic_1.csv")
 intrinsic_tidy =  intrinsic %>%
  pivot_longer(
    cols = starts_with("n_"),
@@ -103,7 +103,7 @@ summary(model)
 ## Tableau
 
 ```{r, echo=FALSE}
-candidate <- read_csv("../data/candidate_1.csv")
+candidate <- read_csv("../artifact/candidate_1.csv")
 
 n_candidate = nrow(candidate)
 n_count = sum(candidate$count)
@@ -129,7 +129,7 @@ candidate_plot_1
 ## Intrinsic
 
 ```{r}
-intrinsic <- read_csv("../data/intrinsic_2.csv")
+intrinsic <- read_csv("../artifact/intrinsic_2.csv")
 head(intrinsic)
 intrinsic_tidy_w = 
 intrinsic %>%
@@ -189,7 +189,7 @@ summary(model_2)
 ## Tableau
 
 ```{r, echo=FALSE}
-candidate <- read_csv("../data/candidate_2.csv")
+candidate <- read_csv("../artifact/candidate_2.csv")
 
 n_candidate = nrow(candidate)
 n_count = sum(candidate$count)

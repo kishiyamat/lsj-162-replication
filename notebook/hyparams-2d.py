@@ -24,19 +24,14 @@
 # %autoreload 2
 
 import sys
-from agent import Agent
+sys.path.append('..')
+from src.agent import Agent
 from omegaconf.dictconfig import DictConfig
 from collections import Counter
 import numpy as np
 from plotnine import *
 import numpy as np
 import pandas as pd
-
-from hydra.experimental import initialize, compose
-from agent import Agent
-
-with initialize(config_path="../hyparam"):
-    hyparam = compose(config_name="hyparam.yml")
 
 # +
 import optuna
@@ -49,36 +44,40 @@ def objective(trial):
         "n_neighbors": trial.suggest_int('n_neighbors', 2, 6),
         "min_dist": trial.suggest_uniform("min_dist", 0.1, 1),  # スケールしてるから1程度
     }
+    u_duration = trial.suggest_categorical('u_duration', [0])
+    # u_duration = trial.suggest_int('u_duration', 0, 9)
+    w_duration = trial.suggest_categorical('w_duration', [3])
     scale = trial.suggest_uniform("scale", 0.1, 0.4)
     config_a = DictConfig({"umap": umap_params, "scale": scale,
-                           "u_duration": hyparam.u_duration_a,
-                           "w_duration": hyparam.w_duration_a})
-    config_b = DictConfig({"umap": umap_params, "scale": scale,
-                           "u_duration": hyparam.u_duration_b,
-                           "w_duration": hyparam.w_duration_b})
+                          "u_duration": u_duration, "w_duration": w_duration})
+    config_b = DictConfig(
+        {"umap": umap_params, "scale": scale, "u_duration": 9, "w_duration": 3})
 
     a = Agent(config_a)
     b = Agent(config_b)
 
-    n_target = 0
+    n_soku = 0
+    # n_u = 0
     n_correct = 0
     perceptions = []
-    for n in range(hyparam.n_iter):
-        src = hyparam.source
+    n_iter = 100  # 精度が増すが計算コストも高くなる
+    for n in range(n_iter):
+        src = "kawuta"
         phoneme, obs, states = a.production(src)
         obs = np.array(obs).astype('double')
         phoneme_hat, obs, states_hat = b.perception(obs)
         perceptions.append(phoneme_hat)
-        n_target += phoneme_hat == hyparam.target
+        # n_correct += phoneme_hat == src  # u_durationが0のときに"kawuta"で最適化する必要はない。
+        n_soku += phoneme_hat == 'kaQta'  # 音韻論の知識
+        # n_u += phoneme_hat == 'kauta'  # 音韻論の知識
 
     print(Counter(perceptions))
-    return n_target*(1-scale)
+    return n_soku*(1-scale)  # 0のときの促音便、ウ音便で最大化させる。ただしscale は少ないほどよい。
 
 
 study = optuna.create_study(
-    direction="maximize", sampler=optuna.samplers.TPESampler(seed=42)
-    )
-study.optimize(objective, n_trials=hyparam.n_trial)
+    direction="maximize", sampler=optuna.samplers.TPESampler(seed=42))
+study.optimize(objective, n_trials=100)
 # -
 
 umap_params = {
@@ -89,6 +88,7 @@ umap_params = {
 }
 scale=study.best_params["scale"]
 config =  DictConfig({"umap": umap_params, "scale": scale, "u_duration": 9, "w_duration": 3})
+config
 
 # +
 agent = Agent(config)

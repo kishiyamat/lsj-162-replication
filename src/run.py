@@ -61,9 +61,10 @@ from hydra.experimental import initialize, compose
 from agent import Agent
 # https://hydra.cc/docs/next/experimental/compose_api
 
-with initialize(config_path="../hyparam"):
+with initialize(config_path="../artifact"):
     config = compose(config_name="config.yml")
-    print(f"exp{exp_id}.yml")
+
+with initialize(config_path="../param"):
     exp_config = compose(config_name=f"exp{exp_id}.yml")
 
 agent_sample = Agent(config)
@@ -111,12 +112,12 @@ for t in trial:
         print(f"trial: {t}")
     for duration, switch in product(durations, switches):
         # duration を制御
-        with initialize(config_path="../hyparam"):
+        with initialize(config_path="../artifact"):
             config_u_reduced = compose(config_name="config.yml", overrides=[f"{delete}_duration={duration}"])
             
         a = Agent(config_u_reduced)
         if switch == "production":  # production のときのみ短くする
-            with initialize(config_path="../hyparam"):
+            with initialize(config_path="../artifact"):
                 config = compose(config_name="config.yml")
             b = Agent(config)
         elif switch == "update":
@@ -164,7 +165,7 @@ results = pd.DataFrame(results_list)
 # 分析は results.md の
 intrinsic = results[["trial", f"{delete}_duration", "intrinsic", "n_kawuta", "n_kawta","n_kaQta", "n_kauta", "n_koota"]]
 
-intrinsic.to_csv(f'../data/intrinsic_{exp_id}.csv', index=False)
+intrinsic.to_csv(f'../artifact/intrinsic_{exp_id}.csv', index=False)
 intrinsic.head()
 
 
@@ -198,7 +199,7 @@ len(recognized) # 100*900 だから
 d = dict(Counter(recognized))
 df = pd.DataFrame.from_dict(d, orient='index').reset_index()
 candidate = df.rename(columns={'index': 'candidate', 0:'count'})
-candidate.to_csv(f'../data/candidate_{exp_id}.csv', index=False)
+candidate.to_csv(f'../artifact/candidate_{exp_id}.csv', index=False)
 
 # ## Referecnce
 #

@@ -1,0 +1,6 @@
+delete: "u"
+target: "kawuta"
+durations: [0, 1, 2, 3]
+switches: ["production", "update"]
+n_trial: 10
+n_iter: 10
