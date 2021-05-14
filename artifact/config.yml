@@ -1,8 +1,0 @@
-umap:
-  n_components: 2
-  random_state: 42
-  n_neighbors: 6
-  min_dist: 0.29110519961044856
-scale: 0.1545474901621302
-u_duration: 9
-w_duration: 3
