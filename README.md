@@ -9,9 +9,12 @@
 
 以下の再現実験では `Docker` が必要になりますので、
 [公式ページ](https://docs.docker.com/get-docker/)
-からインストールするとコードが実行可能になります。
+からインストールするとコマンドが実行可能になります。
 
 ## 再現実験
+
+本リポジトリをクローンしたのち、この`README.md`と同じ階層で
+以下のコマンドを実行します。
 
 ```sh
 docker build -t kishiyamat/lsj-162-replication .
